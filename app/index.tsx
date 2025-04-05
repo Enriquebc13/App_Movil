@@ -1,0 +1,220 @@
+import React, { useEffect, useState } from "react";
+import { createDrawerNavigator } from "@react-navigation/drawer";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebaseConfig";
+import { Text, View, ActivityIndicator } from "react-native";
+
+// PANTALLAS
+import Permisos from "./permisos/permisos";
+import Galeria from "./Galeria/Galery";
+import Perfil from "./Perfil/perfil";
+import Location from "./Location/location";
+import NavigationTabs from "./Location/navigation";
+import Login from "./login/login";
+import Home from "./home/home";
+import About from "./about/about";
+import Notas from "./notas/notas";
+import { AntDesign, Entypo, Feather, FontAwesome, MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
+import RickAndMorty from "./Rick and Morty/Rick and Morty";
+import Character from "./Rick and Morty/character/character";
+import Episodes from "./Rick and Morty/episodes/episodes";
+import Locacion2 from "./Rick and Morty/Locacion/locacion";
+import { SplashScreen } from "@/components/Splash/SplashScreen";
+
+const Drawer = createDrawerNavigator<any>();
+
+export default function Navegacion() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(true); // Agregar estado para controlar la carga del Splash
+  const [isSplashVisible, setIsSplashVisible] = useState<boolean>(true); // Controla la visibilidad del splash
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      console.log("Estado de autenticación:", user ? "Autenticado" : "No autenticado");
+      setIsAuthenticated(!!user);
+      setIsLoading(false); // Al finalizar la carga, dejamos de mostrar el splash
+    });
+
+    // Simula el retraso del SplashScreen
+    setTimeout(() => {
+      setIsSplashVisible(false); // Después de 5 segundos, ocultamos el splash
+    }, 3000); // 5 segundos
+
+    return () => unsubscribe();
+  }, []);
+
+  if (isSplashVisible) {
+    return (
+      <SplashScreen navigation={{ replace: (screen: string) => console.log(`Navigating to: ${screen}`) }} /> // Muestra el splash
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" color="#0a0521" />
+      </View>
+    );
+  }
+
+  return (
+    <Drawer.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: "#0a0521" },
+        headerTintColor: "white",
+        headerTitleStyle: { fontSize: 20, fontWeight: "bold" },
+        drawerStyle: { backgroundColor: "rgba(0, 0, 10, 0.8)", width: 230 },
+        drawerActiveTintColor: "#fff",
+        drawerInactiveTintColor: "#bbb",
+        drawerLabelStyle: { fontSize: 20, marginTop: 10, fontWeight: "bold" },
+      }}
+    >
+      {isAuthenticated ? (
+        <>
+          <Drawer.Screen 
+            name="Home" 
+            component={Home} 
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <MaterialCommunityIcons name="home" size={size} color={color} />
+              ) 
+            }} 
+          />
+          <Drawer.Screen
+            name="Perfil"
+            component={Perfil}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <Feather name="user" size={30} color="white" />
+              ) 
+            }}
+          />
+          <Drawer.Screen
+            name="Locacion"
+            component={Location}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <Entypo name="location-pin" size={28} color="white" />
+              ) 
+            }} 
+          />
+          <Drawer.Screen
+            name="Galeria"
+            component={Galeria}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <Entypo name="folder-images" size={24} color="white" />
+              ) 
+            }} 
+          />
+          <Drawer.Screen
+            name="Rick and Morty"
+            component={RickAndMorty}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <FontAwesome name="mobile-phone" size={30} color="white" />
+              ) 
+            }}
+          />
+          <Drawer.Screen
+            name="Notas"
+            component={Notas}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <MaterialIcons name="notes" size={28} color="white" />
+              ) 
+            }} 
+          />
+          <Drawer.Screen
+            name="Permisos"
+            component={Permisos}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <MaterialIcons name="app-blocking" size={28} color="white" />
+              ) 
+            }}
+          />
+          <Drawer.Screen
+            name="Historial"
+            component={NavigationTabs}
+            options={{ 
+              drawerItemStyle: { display: "none" },
+              drawerIcon: ({ color, size }) => (
+                <MaterialIcons name="history" size={29} color="white" />
+              ) 
+            }}
+          />
+          <Drawer.Screen
+            name="About"
+            component={About}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <AntDesign name="infocirlce" size={29} color="white" />
+              ) 
+            }}
+          />
+          <Drawer.Screen
+            name="Personajes"
+            component={Character}
+            options={{ 
+              drawerItemStyle: { display: "none" },
+              drawerIcon: ({ color, size }) => (
+                <AntDesign name="infocirlce" size={29} color="white" />
+              ) 
+            }}
+          />
+          <Drawer.Screen
+            name="Episodios"
+            component={Episodes}
+            options={{ 
+              drawerItemStyle: { display: "none" },
+              drawerIcon: ({ color, size }) => (
+                <AntDesign name="infocirlce" size={29} color="white" />
+              ) 
+            }}
+          />
+          <Drawer.Screen
+            name="Locaciones"
+            component={Locacion2}
+            options={{ 
+              drawerItemStyle: { display: "none" },
+              drawerIcon: ({ color, size }) => (
+                <AntDesign name="infocirlce" size={29} color="white" />
+              ) 
+            }}
+          />
+        </>
+      ) : (
+        <>
+          <Drawer.Screen
+            name="Login"
+            component={Login}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <Entypo name="login" size={24} color="white" />
+              ) 
+            }}
+            
+          />
+          <Drawer.Screen
+            name="About"
+            component={About}
+            options={{ 
+              drawerIcon: ({ color, size }) => (
+                <AntDesign name="infocirlce" size={29} color="white" />
+              ) 
+            }}
+          />
+          <Drawer.Screen
+            name="Home"
+            component={Home}
+            options={{
+              drawerIcon: () => <Text style={{ fontSize: 20 }}>🏚️</Text>,
+              drawerItemStyle: { display: "none" }
+            }}
+          />
+        </>
+      )}
+    </Drawer.Navigator>
+  );
+}
