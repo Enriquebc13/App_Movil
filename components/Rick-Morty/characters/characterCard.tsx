@@ -3,7 +3,7 @@ import { Character } from "./characterType";
 
 // Definición del tipo Props
 type Props = {
-  character: Character; // Propiedad
+  readonly character: Character;
 };
 
 export function CharacterCard({ character }: Props) {
