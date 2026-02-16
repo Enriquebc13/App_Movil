@@ -1,170 +1,131 @@
-import { ActivityIndicator, Alert, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+
 import { Character } from "./characterType";
 import { CharacterCard } from "./characterCard";
-import { useEffect, useRef, useState } from "react";
 import { CharactersResult } from "./charactersResult";
 import { DataSource } from "./dataSource";
 
-export function CharactersScrollView(){
+export function CharactersScrollView(): JSX.Element {
+  // Estado para loading
+  const [loading, setLoading] = useState<boolean>(false);
 
-    //estado para los datos
-    const[loading, setLoading] = useState(false);
-    const [page, setPage] =useState<number>(1);
-    const [data, setData] = useState<CharactersResult>({
-        info:{
-            pages:0,
-            count:0,
-            next:null,
-            prev:null,
-        },
+  // Estado para paginación
+  const [page, setPage] = useState<number>(1);
 
-        results: [],
-
-    });
-
-const characters: Character[] = [
-    {
-        id:1,
-        name:"Rick Sanchez",
-        status:"Alive",
-        origin: {
-            name: "Tierra",},
-
-        location:{
-            name:"Tierra",
-        },
-        image: "https://rickandmortyapi.com/api/character/avatar/1.jpeg",
-        species:"Human",
-
+  // Estado para datos
+  const [data, setData] = useState<CharactersResult>({
+    info: {
+      pages: 0,
+      count: 0,
+      next: null,
+      prev: null,
     },
-];
-    //para referenciar el flatlist
-    const flatListRef = useRef(null);
+    results: [],
+  });
 
-    const dataSource = new DataSource();
+  // Referencia del FlatList correctamente tipada
+  const flatListRef = useRef<FlatList<Character> | null>(null);
 
-const handleEndReached=() => {
-    //si no hay pag sig o esta cargando no hacer nado en caso contrario incrementar pagina
-    {/*if(!data.info.next || loading ){
-        return;
+  const dataSource = new DataSource();
+
+  // Manejo de paginación
+  const handleEndReached = (): void => {
+    if (data.info.next && !loading) {
+      setPage((prevPage) => prevPage + 1);
     }
+  };
 
-    setPage(page + 1);*/}
+  // Cargar personajes cuando cambia la página
+  useEffect(() => {
+    setLoading(true);
 
-    //forma 2 (es mas apropiada )
-    if(data.info.next && !loading){
-        setPage(page + 1);
-    }
-}
+    dataSource
+      .getCharacters(page)
+      .then((result: CharactersResult) => {
+        setData((prevData) => ({
+          results: [...prevData.results, ...result.results],
+          info: result.info,
+        }));
+      })
+      .catch((error: Error) => {
+        Alert.alert(`Error: ${error.message}`);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [page]);
 
-    //cda vez que cambie el numero de pag cargar personajes
-    useEffect(() => {
-        setLoading(true);
-
-        dataSource.getCharacters(page)
-        .then((result) => {
-
-            //la clave es conservar los personajes
-            //(conservar el estado actual)
-            setData((prevData) => ({
-                results: [...prevData.results, ...result.results],
-                info: result.info,
-            }));
-        })
-       
-        .catch((error) => {
-            Alert.alert(`Error: ${error.message}`);
-        })
-        .finally(() => {
-            setLoading(false);
-        });
-
-    },[page]);
-
-    return(
-        <View style={styles.ScrollView}>
-
-    <View style={styles.paginator}>
-   
-    <View style={styles.pageInfo}>
-        <Text style={styles.textPaginator}>Personajes: </Text>
-        <Text style={styles.numbersPaginator}>{data.results.length}</Text>
-        <Text style={styles.textPaginator}> de </Text>
-        <Text style={styles.numbersPaginator}>{data.info.count}</Text>
-    </View>
-
-  {/*se quitaron los botones*/}
-
-    </View> 
-
-    {loading ? (
-        <ActivityIndicator size= "large"/>
-    ):null}
-
-           {/*</ActivityIndicator>{ loading ? null:data.results.map((item) => (
-                <CharacterCard
-                    key={item.id}
-                    character={item}
-                />
-            ))}*/}
-
-<FlatList
-  ref={flatListRef}
-  data={data.results}
-  renderItem={({item}) => (
-    <CharacterCard character={item}/>
-  )}
-  keyExtractor={(item, index) => `${item.id}-${page}-${index}`} // Hacer la clave única
-  onEndReached={handleEndReached}
-  onEndReachedThreshold={0.5}
-  refreshing={loading} // Se le indica al flatlist que está cargando
-  ListFooterComponent={loading ? <ActivityIndicator size="large" /> : undefined}
-/>
-
-
+  return (
+    <View style={styles.container}>
+      <View style={styles.paginator}>
+        <View style={styles.pageInfo}>
+          <Text style={styles.textPaginator}>Personajes: </Text>
+          <Text style={styles.numbersPaginator}>
+            {data.results.length}
+          </Text>
+          <Text style={styles.textPaginator}> de </Text>
+          <Text style={styles.numbersPaginator}>
+            {data.info.count}
+          </Text>
         </View>
-    );
+      </View>
+
+      {loading && <ActivityIndicator size="large" />}
+
+      <FlatList
+        ref={flatListRef}
+        data={data.results}
+        renderItem={({ item }) => (
+          <CharacterCard character={item} />
+        )}
+        keyExtractor={(item, index) =>
+          `${item.id}-${page}-${index}`
+        }
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
+        refreshing={loading}
+        ListFooterComponent={
+          loading ? <ActivityIndicator size="large" /> : null
+        }
+      />
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-    ScrollView:{
-        width:"100%",
-        backgroundColor:"#0a0521"
-            },
-    paginator:{
-        display:"flex",
-        flexDirection:"row",
-        justifyContent:"center",
-        alignItems:"center",
-        marginBottom: 7,
-        height:60,
-        borderWidth:2,
-       backgroundColor:"#0a0521",
-    },
-    button:{
-        backgroundColor:"#083452",
-        color:"#FFF",
-        paddingVertical:8,
-        paddingHorizontal:16,
-    },
-    buttonText:{
-        fontSize:18,
-        color: "#FFF"
-    },
-    pageInfo:{
-        display:"flex",
-        flexDirection:"row",
-        alignItems:"center",
-        gap:4,
-    },
-    textPaginator:{
-        fontWeight:"bold",
-        fontSize:25,
-        color:"white"
-    },
-    numbersPaginator:{
-        color:"grey",
-        fontSize:25,
-        fontStyle:"italic"
-    }
+  container: {
+    width: "100%",
+    backgroundColor: "#0a0521",
+  },
+  paginator: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 7,
+    height: 60,
+    borderWidth: 2,
+    backgroundColor: "#0a0521",
+  },
+  pageInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  textPaginator: {
+    fontWeight: "bold",
+    fontSize: 25,
+    color: "white",
+  },
+  numbersPaginator: {
+    color: "grey",
+    fontSize: 25,
+    fontStyle: "italic",
+  },
 });
