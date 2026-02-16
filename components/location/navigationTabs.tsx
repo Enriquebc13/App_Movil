@@ -1,45 +1,62 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons, MaterialIcons } from "@expo/vector-icons";
+import { MaterialIcons } from "@expo/vector-icons";
 
-//PANTALLAS
+// PANTALLAS
 import HistorialScreen from "./historialScreen";
 import RegistroScreen from "./registroScreen";
 
 const Tab = createBottomTabNavigator();
 
-export default function LocationNavigation() {
+// ======================
+// TIPADO PARA ICONOS
+// ======================
+type IconProps = {
+  color: string;
+  size: number;
+};
+
+// ======================
+// ICONOS FUERA DEL COMPONENTE
+// ======================
+const HistorialIcon = ({ color, size }: IconProps) => (
+  <MaterialIcons name="history" color={color} size={size} />
+);
+
+const RegistroIcon = ({ color, size }: IconProps) => (
+  <MaterialIcons name="location-on" color={color} size={size} />
+);
+
+// ======================
+// COMPONENTE PRINCIPAL
+// ======================
+export default function LocationNavigation(): JSX.Element {
   return (
-    
-      <Tab.Navigator
-        screenOptions={() => ({
-          headerShown: false,
-          tabBarStyle: {
-            backgroundColor: "#0a0521", 
-          },
-          tabBarActiveTintColor: "white", 
-          tabBarInactiveTintColor: "gray",
-        })}
-      >
-       <Tab.Screen
+    <Tab.Navigator
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: "#0a0521",
+        },
+        tabBarActiveTintColor: "white",
+        tabBarInactiveTintColor: "gray",
+      }}
+    >
+      <Tab.Screen
         name="Historial"
         component={HistorialScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="history" color={color} size={size} />
-          ),
+          tabBarIcon: HistorialIcon,
         }}
       />
+
       <Tab.Screen
         name="Registro"
         component={RegistroScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="location-on" color={color} size={size} />
-          ),
+          tabBarIcon: RegistroIcon,
         }}
       />
-      </Tab.Navigator>
-   
+    </Tab.Navigator>
   );
 }
